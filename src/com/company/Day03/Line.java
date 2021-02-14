@@ -1,8 +1,5 @@
 package com.company.Day03;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 public class Line {
 
     private final int X = 1, Y = 2;
