@@ -3,6 +3,7 @@ package com.company.Day02;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import com.company.Intcode;
 
 public class Main {
 
@@ -25,8 +26,8 @@ public class Main {
                 instructions[2] = j;
 
                 intcode = new Intcode(instructions);
-
-                long result = intcode.run();
+                intcode.run();
+                long result = intcode.getValue(0);
 
                 if (result == 19690720) {
                     System.out.println(100 * i + j);

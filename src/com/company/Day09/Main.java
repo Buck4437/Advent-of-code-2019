@@ -11,6 +11,7 @@ public class Main {
 
         File file = new File("src\\com\\company\\Day09\\input.txt");
         Scanner sc = new Scanner(file);
+        Scanner sc2 = new Scanner(System.in);
 
         String[] numS = sc.nextLine().split(",");
         long[] instructions = new long[numS.length];
@@ -19,8 +20,11 @@ public class Main {
         }
 
         Intcode intcode = new Intcode(instructions);
-        long result = intcode.run();
+        int code = intcode.run();
+        while (code == 3) {
+            code = intcode.input(sc2.nextLong());
+        }
 
-        System.out.println("Program terminated with the code: " + result);
+        System.out.println("Program terminated with the code: " + code);
     }
 }

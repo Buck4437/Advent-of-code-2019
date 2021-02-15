@@ -1,23 +1,59 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Scanner;
 
 public class Intcode {
 
+    long[] initialState;
+    ArrayList<Long> output = new ArrayList<>();
     Hashtable<Integer, Long> memory = new Hashtable<>();
-    Scanner sc = new Scanner(System.in);
     int pointer = 0;
     int relativeBase = 0;
 
     public Intcode(long[] memory) {
+        initialState = memory;
         for (int i = 0; i < memory.length; i++) {
             this.memory.put(i, memory[i]);
         }
     }
 
-    public long run() {
-        while (pointer < memory.size()) {
+    public void reset() {
+        this.memory = new Hashtable<>();
+        for (int i = 0; i < initialState.length; i++) {
+            this.memory.put(i, initialState[i]);
+        }
+        output = new ArrayList<>();
+        pointer = 0;
+        relativeBase = 0;
+    }
+
+    // return 0: terminated, return -1: error, return 3: awaits input
+
+    // use input() to continue the program
+
+    // use getOutputs() to see the previous outputs
+
+    // use reset() to reset the machine
+
+    public int run() {
+        return run(null);
+    }
+
+    public int input(long input) {
+        return run(input);
+    }
+
+    public ArrayList<Long> getOutputs() {
+        return output;
+    }
+
+    public Long getOutput(int pos) {
+        return output.get(Math.floorMod(pos, output.size()));
+    }
+
+    public int run(Long input) {
+        while (true) {
             int instruction = (int) getValue(pointer);
             int opcode = instruction % 100;
             long[] params;
@@ -45,19 +81,27 @@ public class Intcode {
                     pointer += 4;
                     break;
                 case 3:
+                    if (input == null) {
+                        System.out.println("Awaiting input...");
+                        return 3;
+                    }
+
                     params = getParameters(1);
                     modes = getModes(instruction, 1);
 
-                    System.out.println("Awaiting input...");
-                    setValue(modes[0], params[0], sc.nextLong());
+                    System.out.println(input + " has been inputted");
 
+                    setValue(modes[0], params[0], input);
+
+                    input = null;
                     pointer += 2;
                     break;
                 case 4:
                     params = getParameters(1);
                     modes = getModes(instruction, 1);
 
-                    System.out.println(getValue(modes[0], params[0]));
+                    output.add(getValue(modes[0], params[0]));
+                    System.out.println(getValue(modes[0], params[0]) + " has been outputted");
 
                     pointer += 2;
                     break;
@@ -116,13 +160,12 @@ public class Intcode {
                     pointer += 2;
                     break;
                 case 99:
-                    return getValue(0, 0);
+                    System.out.println("Number at address 0: " + getValue(0));
+                    return 0;
                 default:
                     return error("Error: Unknown opcode " + opcode);
             }
         }
-        return error("Error: Pointer (at position " + pointer
-                + ") exceeds the maximum size of memory (size of " + memory.size() + ")");
     }
 
     private int[] getModes(long instruction, int parameters) {
@@ -135,7 +178,7 @@ public class Intcode {
         return modes;
     }
 
-    private long getValue(long parameter) {
+    public long getValue(long parameter) {
         return getValue(0, parameter);
     }
 
@@ -164,15 +207,9 @@ public class Intcode {
 
     private void setValue(int mode, long parameter, long value) {
         switch (mode) {
-            case 0:
-                memory.put((int) parameter, value);
-                break;
-            case 1:
-                error("Error: an instruction write cannot be in mode 1");
-                return;
-            case 2:
-                memory.put((int) parameter + relativeBase, value);
-                break;
+            case 0 -> memory.put((int) parameter, value);
+            case 1 -> error("Error: an instruction write cannot be in mode 1");
+            case 2 -> memory.put((int) parameter + relativeBase, value);
         }
     }
 
