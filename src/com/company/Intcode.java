@@ -10,6 +10,7 @@ public class Intcode {
     Hashtable<Integer, Long> memory = new Hashtable<>();
     int pointer = 0;
     int relativeBase = 0;
+    boolean showLog = true;
 
     public Intcode(long[] memory) {
         initialState = memory;
@@ -23,9 +24,13 @@ public class Intcode {
         for (int i = 0; i < initialState.length; i++) {
             this.memory.put(i, initialState[i]);
         }
-        output = new ArrayList<>();
         pointer = 0;
         relativeBase = 0;
+        resetOutput();
+    }
+
+    public void resetOutput() {
+        output = new ArrayList<>();
     }
 
     // return 0: terminated, return -1: error, return 3: awaits input
@@ -34,7 +39,11 @@ public class Intcode {
 
     // use getOutputs() to see the previous outputs
 
+    // use showLog(false) to hide logs
+
     // use reset() to reset the machine
+
+    // use resetOutput() if you want to only reset the output
 
     public int run() {
         return run(null);
@@ -48,8 +57,12 @@ public class Intcode {
         return output;
     }
 
-    public Long getOutput(int pos) {
+    public long getOutput(int pos) {
         return output.get(Math.floorMod(pos, output.size()));
+    }
+
+    public void setShowLog(boolean show) {
+        showLog = show;
     }
 
     public int run(Long input) {
@@ -82,14 +95,14 @@ public class Intcode {
                     break;
                 case 3:
                     if (input == null) {
-                        System.out.println("Awaiting input...");
+                        log("Awaiting input...");
                         return 3;
                     }
 
                     params = getParameters(1);
                     modes = getModes(instruction, 1);
 
-                    System.out.println(input + " has been inputted");
+                    log(input + " has been inputted");
 
                     setValue(modes[0], params[0], input);
 
@@ -101,7 +114,7 @@ public class Intcode {
                     modes = getModes(instruction, 1);
 
                     output.add(getValue(modes[0], params[0]));
-                    System.out.println(getValue(modes[0], params[0]) + " has been outputted");
+                    log(getValue(modes[0], params[0]) + " has been outputted");
 
                     pointer += 2;
                     break;
@@ -219,6 +232,12 @@ public class Intcode {
             params[i] = getValue(pointer + i + 1);
         }
         return params;
+    }
+
+    private void log(String text) {
+        if (showLog) {
+            System.out.println(text);
+        }
     }
 
     private int error(String text) {

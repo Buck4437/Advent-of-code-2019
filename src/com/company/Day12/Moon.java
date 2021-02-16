@@ -1,5 +1,7 @@
 package com.company.Day12;
 
+import java.util.Arrays;
+
 public class Moon {
 
     int[] vel = {0, 0, 0};
@@ -21,14 +23,11 @@ public class Moon {
         }
     }
 
-    public long getEnergy() {
-        long pot = 0, kin = 0;
-        for (int i : pos) {
-            pot += Math.abs(i);
-        }
-        for (int i : vel) {
-            kin += Math.abs(i);
-        }
-        return pot * kin;
+    @Override
+    public String toString() {
+        return "Moon{" +
+                "vel=" + Arrays.toString(vel) +
+                ", pos=" + Arrays.toString(pos) +
+                '}';
     }
 }
