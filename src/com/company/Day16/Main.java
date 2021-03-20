@@ -32,7 +32,6 @@ public class Main {
             str += a.charAt(i % a.length());
         }
 
-
         for (int i = 0; i < 100; i++) {
             System.out.println(i + "/100");
             String newStr = "";
