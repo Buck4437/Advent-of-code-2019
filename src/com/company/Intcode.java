@@ -13,7 +13,6 @@ public class Intcode {
     To initiate Intcode interpreter, create an Intcode instance and pass through a long array
     as an argument to constructor. The long array is the memory of the interpreter.
 
-    
 
     To begin, use run() to run the interpreter.
 
