@@ -22,7 +22,9 @@ public class Intcode {
     3: The program is awaiting input (via opcode 3).
 
     When the interpreter return 3, you can continue the program by running input():
-    @param input   This parameter will be used by the program as your input
+    @param input   This parameter will be used by the program as your input.
+                   Accepts long, ArrayList<Long> for multiple inputs,
+                            or String, which will be translated to ASCII-code array.
 
 
 
@@ -31,6 +33,16 @@ public class Intcode {
 
     Alternatively, use getOutput() to get a single output:
     @param input     Get the n-th output of the program. Accepts negative number (-1 => last output etc.)
+
+
+
+    You can also enable ASCII Mode by running ASCIIMode(), which prints all output as ASCII characters:
+    @param state    Enable/Disable ASCII Mode. The default value is false
+
+    getASCIIOutputs() and getASCIIOutput() works similar to getOutputs() and getOutput(). The only difference is that
+    the outputs are converted to characters.
+
+
 
     If you want to reset/clear the output of the interpreter, you can run resetOutput().
     This will remove all the outputs from interpreter.
@@ -48,11 +60,12 @@ public class Intcode {
     */
 
     long[] initialState;
+    ArrayList<Long> inputs = new ArrayList<>();
     ArrayList<Long> output = new ArrayList<>();
     Hashtable<Integer, Long> memory = new Hashtable<>();
     int pointer = 0;
     int relativeBase = 0;
-    boolean showLog = false;
+    boolean showLog = false, ASCIIMode = false;
 
     public Intcode(long[] memory) {
         initialState = memory;
@@ -75,12 +88,31 @@ public class Intcode {
         output = new ArrayList<>();
     }
 
-    public int run() {
-        return run(null);
+    public int input(long input) {
+        this.inputs.add(input);
+        return run();
     }
 
-    public int input(long input) {
-        return run(input);
+    public int input(ArrayList<Long> inputs) {
+        this.inputs.addAll(inputs);
+        return run();
+    }
+
+    public int input(String inputs) {
+        ArrayList<Long> codes = new ArrayList<>();
+        for (char c : inputs.toCharArray()) {
+            codes.add((long) c);
+        }
+        codes.add((long) '\n');
+        return input(codes);
+    }
+
+    private boolean hasInput() {
+        return this.inputs.size() > 0;
+    }
+
+    private long getInput() {
+        return this.inputs.remove(0);
     }
 
     public ArrayList<Long> getOutputs() {
@@ -91,11 +123,27 @@ public class Intcode {
         return output.get(Math.floorMod(pos, output.size()));
     }
 
+    public void ASCIIMode(boolean state) {
+        ASCIIMode = state;
+    }
+
+    public ArrayList<Character> getASCIIOutputs() {
+        ArrayList<Character> outs = new ArrayList<>();
+        for (long num : getOutputs()) {
+            outs.add((char) num);
+        }
+        return outs;
+    }
+
+    public char getASCIIOutput(int pos) {
+        return getASCIIOutputs().get(Math.floorMod(pos, getASCIIOutputs().size()));
+    }
+
     public void showLog(boolean show) {
         showLog = show;
     }
 
-    public int run(Long input) {
+    public int run() {
         while (true) {
             int instruction = (int) getValue(pointer);
             int opcode = instruction % 100;
@@ -124,10 +172,12 @@ public class Intcode {
                     pointer += 4;
                     break;
                 case 3:
-                    if (input == null) {
+                    if (!hasInput()) {
                         log("Awaiting input...");
                         return 3;
                     }
+
+                    long input = getInput();
 
                     params = getParameters(1);
                     modes = getModes(instruction, 1);
@@ -136,15 +186,18 @@ public class Intcode {
 
                     setValue(modes[0], params[0], input);
 
-                    input = null;
                     pointer += 2;
                     break;
                 case 4:
                     params = getParameters(1);
                     modes = getModes(instruction, 1);
 
-                    output.add(getValue(modes[0], params[0]));
-                    log(getValue(modes[0], params[0]) + " has been outputted");
+                    long out = getValue(modes[0], params[0]);
+                    output.add(out);
+                    log(out + " has been outputted");
+                    if (ASCIIMode) {
+                        System.out.print((char) out);
+                    }
 
                     pointer += 2;
                     break;
