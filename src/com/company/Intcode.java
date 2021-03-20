@@ -5,12 +5,55 @@ import java.util.Hashtable;
 
 public class Intcode {
 
+    /*
+    A little documentation because I can't code:
+
+
+
+    To initiate Intcode interpreter, create an Intcode instance and pass through a long array
+    as an argument to constructor. The long array is the memory of the interpreter.
+
+    
+
+    To begin, use run() to run the interpreter.
+
+    The interpreter will return an output based on its condition:
+    0: The program has terminated successfully (via opcode 99)
+    -1: An error has occurred.
+    3: The program is awaiting input (via opcode 3).
+
+    When the interpreter return 3, you can continue the program by running input():
+    @param input   This parameter will be used by the program as your input
+
+
+
+    You can check the outputs (via opcode 4) of the program by running getOutputs():
+    @return ArrayList<Long>      All the outputs of the program, sorted from oldest to newest
+
+    Alternatively, use getOutput() to get a single output:
+    @param input     Get the n-th output of the program. Accepts negative number (-1 => last output etc.)
+
+    If you want to reset/clear the output of the interpreter, you can run resetOutput().
+    This will remove all the outputs from interpreter.
+
+
+
+    Logs of the interpreter is off by default.
+    You can choose to show the log of the interpreter by using showLog():
+    @param showLog   A boolean value that determines whether the log would be shown or hidden
+
+
+
+    If you want to reset the program, run reset().
+    This will reset everything except logging options and initial memory.
+    */
+
     long[] initialState;
     ArrayList<Long> output = new ArrayList<>();
     Hashtable<Integer, Long> memory = new Hashtable<>();
     int pointer = 0;
     int relativeBase = 0;
-    boolean showLog = true;
+    boolean showLog = false;
 
     public Intcode(long[] memory) {
         initialState = memory;
@@ -33,18 +76,6 @@ public class Intcode {
         output = new ArrayList<>();
     }
 
-    // return 0: terminated, return -1: error, return 3: awaits input
-
-    // use input() to continue the program
-
-    // use getOutputs() to see the previous outputs
-
-    // use showLog(false) to hide logs
-
-    // use reset() to reset the machine
-
-    // use resetOutput() if you want to only reset the output
-
     public int run() {
         return run(null);
     }
@@ -61,7 +92,7 @@ public class Intcode {
         return output.get(Math.floorMod(pos, output.size()));
     }
 
-    public void setShowLog(boolean show) {
+    public void showLog(boolean show) {
         showLog = show;
     }
 

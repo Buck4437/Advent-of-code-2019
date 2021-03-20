@@ -4,7 +4,6 @@ import com.company.Intcode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Scanner;
 
@@ -26,7 +25,7 @@ public class Main {
         MyFrame myFrame = new MyFrame(tiles);
 
         Intcode intcode = new Intcode(instructions);
-        intcode.setShowLog(false);
+        intcode.showLog(false);
 
         int code = 1;
         int input = 0;
