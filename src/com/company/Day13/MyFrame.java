@@ -9,7 +9,7 @@ public class MyFrame extends JFrame {
     Hashtable<String, Integer> tiles;
 
     public MyFrame(Hashtable<String, Integer> tiles) {
-        this.setTitle("Intcode");
+        this.setTitle("Day 13");
         this.setSize(550, 400);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
