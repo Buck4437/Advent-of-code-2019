@@ -23,7 +23,7 @@ public class Intcode {
 
     When the interpreter return 3, you can continue the program by running input():
     @param input   This parameter will be used by the program as your input.
-                   Accepts long, ArrayList<Long> for multiple inputs,
+                   Accepts long, long[] or ArrayList<Long> for multiple inputs,
                             or String, which will be translated to ASCII-code array.
 
 
@@ -92,6 +92,14 @@ public class Intcode {
         this.inputs.add(input);
         return run();
     }
+
+    public int input(long[] inputs) {
+        for (long input : inputs) {
+            this.inputs.add(input);
+        }
+        return run();
+    }
+
 
     public int input(ArrayList<Long> inputs) {
         this.inputs.addAll(inputs);
@@ -256,7 +264,7 @@ public class Intcode {
                     pointer += 2;
                     break;
                 case 99:
-                    System.out.println("Number at address 0: " + getValue(0));
+                    log("Number at address 0: " + getValue(0));
                     return 0;
                 default:
                     return error("Error: Unknown opcode " + opcode);
