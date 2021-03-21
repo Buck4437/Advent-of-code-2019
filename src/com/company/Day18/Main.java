@@ -6,6 +6,17 @@ import java.util.*;
 
 public class Main {
 
+    /*
+    idea:
+    - Abandon maze bot
+    - Depth first search
+    - Store squares previously visited to avoid backtrack
+    - Pass them through the transverse function
+    - Make use of memoization
+    - Remove stored square when you have got a new key
+    - Scores + 1 for every move
+     */
+
     static final int[][] VECTORS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}}; // N E S W
 
     static Hashtable<String, Character> maze = new Hashtable<>();
