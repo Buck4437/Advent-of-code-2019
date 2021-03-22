@@ -19,6 +19,13 @@ public class Main2 {
     revert back to old code (Works better (?))
      */
 
+    /*
+    idea 3:
+    use some sort of queue to store the distance required to calc
+    if can't calc, create sub problems that help it calc and put it to last place
+    this prevents stackoverflow OwOb
+     */
+
 
     static final int[][] VECTORS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}}; // N E S W
 
