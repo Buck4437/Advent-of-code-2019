@@ -1,15 +1,10 @@
 package com.company.Day23;
 
-import com.company.Intcode;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Scanner;
-import java.util.jar.JarEntry;
-
 public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
