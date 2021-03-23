@@ -22,6 +22,15 @@ public class Operation {
         }
     }
 
+    public Operation(int operation) {
+        this(operation, UNDEFINED);
+    }
+
+    public Operation (int operation, int argument) {
+        this.operation = operation;
+        this.argument = argument;
+    }
+
     public int getOperation() {
         return operation;
     }
@@ -32,5 +41,13 @@ public class Operation {
 
     public int getArgument() {
         return argument;
+    }
+
+    @Override
+    public String toString() {
+        return "Operation{" +
+                "operation=" + operation +
+                ", argument=" + argument +
+                '}';
     }
 }
