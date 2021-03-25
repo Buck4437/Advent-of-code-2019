@@ -23,10 +23,9 @@ public class Main {
 
         Graph graph = new Graph();
 
-        Hashtable<String, Vertex> layout = new Hashtable<>();
-        Hashtable<String, Vertex> portal = new Hashtable<>();
-        Vertex start;
-        Vertex end;
+        Hashtable<String, String> portal = new Hashtable<>();
+        String start;
+        String end;
 
         for (int y = 0; y < input.size(); y++) {
             String str = input.get(y);
@@ -36,23 +35,16 @@ public class Main {
 
                 if (c == '.') {
                     String id = Vertex.toString(x, y);
-
-                    Vertex vertex = new Vertex(id);
-                    if (layout.containsKey(id)) {
-                        vertex = layout.get(id);
+                    if (!graph.hasVertex(id)) {
+                        graph.addVertex(id);
                     }
-
                     for (int[] dir : DIR) {
                         int x2 = x + dir[0], y2 = y + dir[1];
                         String id2 = Vertex.toString(x2, y2);
-                        if (layout.containsKey(id2)) {
-                            Vertex vertex2 = layout.get(id2);
-                            vertex2.addAdj(vertex);
-                            vertex.addAdj(vertex2);
+                        if (graph.hasVertex(id2)) {
+                            graph.addEdge(id, id2);
                         }
                     }
-
-                    layout.put(id, vertex);
 
                 } else { // Portal
                     for (int[] dir : POSITIVE_DIR) {
@@ -69,21 +61,19 @@ public class Main {
                                 id = Vertex.toString(x - dir[0], y - dir[1]);
                             }
 
-                            Vertex vertex = new Vertex(id);
-                            if (layout.containsKey(id)) {
-                                vertex = layout.get(id);
+                            if (!graph.hasVertex(id)) {
+                                graph.addVertex(id);
                             }
 
                             if (portalId.equals("AA")) {
-                                start = vertex;
+                                start = id;
                             } else if (portalId.equals("ZZ")) {
-                                end = vertex;
+                                end = id;
                             } else if (portal.containsKey(portalId)) {
-                                Vertex vertex2 = portal.remove(portalId);
-                                vertex2.addAdj(vertex);
-                                vertex.addAdj(vertex2);
+                                String id2 = portal.remove(portalId);
+                                graph.addEdge(id, id2);
                             } else {
-                                portal.put(portalId, vertex);
+                                portal.put(portalId, id);
                             }
                         }
                     }
@@ -91,18 +81,18 @@ public class Main {
             }
         }
 
-        for (int i = 0; i <= 30; i++) {
-            for (int j = 0; j <= 30; j++) {
-                System.out.print(layout.containsKey(Vertex.toString(j, i)) ? "." : "#");
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 20; j++) {
+                System.out.print(graph.hasVertex(Vertex.toString(j, i)) ? "." : "#");
             }
             System.out.print("\n");
         }
 
-        for (int i = 0; i <= 30; i++) {
-            for (int j = 0; j <= 30; j++) {
-                if (layout.containsKey(Vertex.toString(j, i))) {
-                    System.out.print(layout.get(Vertex.toString(j, i)) + "  =>  ");
-                    System.out.println(layout.get(Vertex.toString(j, i)).getAdj().toString());
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 20; j++) {
+                if (graph.hasVertex(Vertex.toString(j, i))) {
+                    System.out.print(graph.getVertex(Vertex.toString(j, i)) + "  =>  ");
+                    System.out.println(graph.getVertex(Vertex.toString(j, i)).getAdj().toString());
                 }
             }
             System.out.print("\n");
