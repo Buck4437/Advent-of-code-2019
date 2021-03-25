@@ -1,6 +1,8 @@
 package com.company.Day22;
 
-public class Operation {
+import java.math.BigInteger;
+
+public class OperationBig {
 
     public static final int UNDEFINED = -1;
     public static final int REVERSE = 1;
@@ -8,25 +10,33 @@ public class Operation {
     public static final int DEAL = 7;
 
     private int operation = UNDEFINED;
-    private long argument = UNDEFINED;
+    private BigInteger argument = new BigInteger(String.valueOf(UNDEFINED));
 
-    public Operation(String s) {
+    public OperationBig(String s) {
         if (s.contains("deal into new stack")) {
             operation = REVERSE;
         } else if (s.contains("cut")) {
             operation = CUT;
-            setArgument(Integer.parseInt(s.split(" ")[1]));
+            setArgument(new BigInteger(s.split(" ")[1]));
         } else if (s.contains("deal with increment")) {
             operation = DEAL;
-            setArgument(Integer.parseInt(s.split(" ")[3]));
+            setArgument(new BigInteger(s.split(" ")[3]));
         }
     }
 
-    public Operation(int operation) {
-        this(operation, UNDEFINED);
+    public OperationBig(int operation) {
+        this(operation, new BigInteger(String.valueOf(UNDEFINED)));
     }
 
-    public Operation (int operation, long argument) {
+    public OperationBig(int operation, int argument) {
+        this(operation, BigInteger.valueOf(argument));
+    }
+
+    public OperationBig(int operation, long argument) {
+        this(operation, BigInteger.valueOf(argument));
+    }
+
+    public OperationBig(int operation, BigInteger argument) {
         this.operation = operation;
         this.argument = argument;
     }
@@ -35,11 +45,11 @@ public class Operation {
         return operation;
     }
 
-    private void setArgument(long i) {
+    private void setArgument(BigInteger i) {
         this.argument = i;
     }
 
-    public long getArgument() {
+    public BigInteger getArgument() {
         return argument;
     }
 

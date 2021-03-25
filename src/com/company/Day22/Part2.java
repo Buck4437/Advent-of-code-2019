@@ -2,55 +2,107 @@ package com.company.Day22;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Scanner;
 
 public class Part2 {
 
+    static final long SIZE = 119315717514047L;
+
     public static void main(String[] args) throws FileNotFoundException {
 
-        ArrayList<String> instructions = parse();
-        LinkedList<Operation> ops = new LinkedList<>();
+        long time = System.nanoTime();
 
+        ArrayList<String> instructions = parse();
+        LinkedList<OperationBig> baseOps = new LinkedList<>();
         for (String s : instructions) {
-            ops.addLast(new Operation(s));
+            baseOps.addLast(new OperationBig(s));
+        }
+        baseOps = compress(baseOps);
+
+        long repetition = 101741582076661L;
+        repetition = 119315717514047L - repetition - 1; // Repetitions needed to sort the array
+
+        LinkedList<OperationBig> temp = new LinkedList<>(baseOps);
+        LinkedList<OperationBig> ops = new LinkedList<>();
+        int count = 0;
+
+        while (true) {
+            long bit = (long) Math.pow(2, count);
+            if (bit > repetition) break;
+
+            if ((bit & repetition) != 0L) {
+                ops.addAll(temp);
+                ops = compress(ops);
+            }
+
+            LinkedList<OperationBig> temp2 = new LinkedList<>(temp);
+            temp2.addAll(temp);
+            temp = compress(temp2); // Double the list
+            count++;
         }
 
-        final int SIZE = 10007;
-        long time = System.nanoTime();
+        for (OperationBig op : ops) {
+            System.out.println(op.toString());
+        }
+
+        long cardPos = 2020;
+
+        for (OperationBig op : ops) {
+            BigInteger arg = op.getArgument();
+            switch (op.getOperation()) {
+                case OperationBig.REVERSE -> cardPos = SIZE - cardPos - 1;
+                case OperationBig.CUT -> cardPos = BigInteger.valueOf(cardPos).subtract(arg).mod(BigInteger.valueOf(SIZE)).longValue();
+                case OperationBig.DEAL -> cardPos = BigInteger.valueOf(cardPos).multiply(arg).mod(BigInteger.valueOf(SIZE)).longValue();
+            }
+        }
+
+
+
+        System.out.println(cardPos);
+        System.out.println((System.nanoTime() - time)/1e6 + "ms");
+
+    }
+
+    public static LinkedList<OperationBig> compress(LinkedList<OperationBig> input) {
+
+        LinkedList<OperationBig> ops = new LinkedList<>(input);
 
         boolean hasNewOp = true;
         while (hasNewOp) {
             hasNewOp = false;
-            LinkedList<Operation> newOps = new LinkedList<>();
+            LinkedList<OperationBig> newOps = new LinkedList<>();
             while (!ops.isEmpty()) {
-                Operation op1 = ops.removeFirst();
-                if (op1.getOperation() == Operation.CUT && !ops.isEmpty()) {
-                    Operation op2 = ops.removeFirst();
-                    if (op2.getOperation() == Operation.CUT) {
+                OperationBig op1 = ops.removeFirst();
+                if (op1.getOperation() == OperationBig.CUT && !ops.isEmpty()) {
+                    OperationBig op2 = ops.removeFirst();
+                    if (op2.getOperation() == OperationBig.CUT) {
                         hasNewOp = true;
-                        newOps.addLast(new Operation(Operation.CUT, (op1.getArgument() + op2.getArgument()) % SIZE));
-                    } else if (op2.getOperation() == Operation.DEAL) {
+                        newOps.addLast(new OperationBig(OperationBig.CUT, (op1.getArgument().add(op2.getArgument())).mod(BigInteger.valueOf(SIZE))));
+                    } else if (op2.getOperation() == OperationBig.DEAL) {
                         hasNewOp = true;
-                        newOps.addLast(new Operation(Operation.DEAL, op2.getArgument()));
-                        newOps.addLast(new Operation(Operation.CUT, (op1.getArgument() * op2.getArgument()) % SIZE));
+                        newOps.addLast(new OperationBig(OperationBig.DEAL, op2.getArgument()));
+                        newOps.addLast(new OperationBig(OperationBig.CUT, (op1.getArgument().multiply(op2.getArgument())).mod(BigInteger.valueOf(SIZE))));
                     } else {
                         newOps.addLast(op1);
                         ops.addFirst(op2);
                     }
-                } else if (op1.getOperation() == Operation.DEAL && !ops.isEmpty()) {
-                    Operation op2 = ops.removeFirst();
-                    if (op2.getOperation() == Operation.DEAL) {
+                } else if (op1.getOperation() == OperationBig.DEAL && !ops.isEmpty()) {
+                    OperationBig op2 = ops.removeFirst();
+                    if (op2.getOperation() == OperationBig.DEAL) {
                         hasNewOp = true;
-                        newOps.addLast(new Operation(Operation.DEAL, (op1.getArgument() * op2.getArgument()) % SIZE));
+                        newOps.addLast(new OperationBig(OperationBig.DEAL, (op1.getArgument().multiply(op2.getArgument())).mod(BigInteger.valueOf(SIZE))));
                     } else {
                         newOps.addLast(op1);
                         ops.addFirst(op2);
                     }
 
-                } else if (op1.getOperation() == Operation.REVERSE) {
+                } else if (op1.getOperation() == OperationBig.REVERSE) {
                     hasNewOp = true;
-                    newOps.addLast(new Operation(Operation.DEAL, SIZE - 1));
-                    newOps.addLast(new Operation(Operation.CUT, 1));
+                    newOps.addLast(new OperationBig(OperationBig.DEAL, SIZE - 1));
+                    newOps.addLast(new OperationBig(OperationBig.CUT, 1));
                 } else { // is empty
                     newOps.addLast(op1);
                 }
@@ -59,51 +111,7 @@ public class Part2 {
             ops = newOps;
         }
 
-        for (Operation op : ops) {
-            System.out.println(op);
-        }
-
-        ArrayList<String> cards = new ArrayList<>();
-
-
-        for (int i = 0; i < SIZE; i++) {
-            cards.add(Integer.toString(i));
-        }
-
-        for (Operation op : ops) {
-            int arg = op.getArgument();
-            switch (op.getOperation()) {
-                case Operation.REVERSE:
-                    Collections.reverse(cards);
-                    break;
-                case Operation.CUT:
-                    if (arg > 0) {
-                        for (int i = 0; i < arg; i++) {
-                            cards.add(cards.remove(0));
-                        }
-                    } else if (arg < 0) {
-                        for (int i = 0; i > arg; i--) {
-                            cards.add(0, cards.remove(SIZE - 1));
-                        }
-                    }
-                    break;
-                case Operation.DEAL:
-                    String[] cards2 = new String[SIZE];
-                    int pos = 0;
-                    for (String card : cards) {
-                        cards2[pos] = card;
-                        pos += arg;
-                        if (pos >= SIZE) pos -= SIZE;
-                    }
-                    cards = new ArrayList<>(Arrays.asList(cards2));
-                    break;
-            }
-        }
-
-
-
-        System.out.println(cards.indexOf("2019"));
-        System.out.println((System.nanoTime() - time)/1e6 + "ms");
+        return ops;
 
     }
 

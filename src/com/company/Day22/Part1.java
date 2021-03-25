@@ -26,7 +26,7 @@ public class Part1 {
         }
 
         for (Operation op : ops) {
-            int arg = op.getArgument();
+            long arg = op.getArgument();
             switch (op.getOperation()) {
                 case Operation.REVERSE:
                     Collections.reverse(cards);
