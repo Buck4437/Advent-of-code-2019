@@ -1,31 +1,39 @@
-package com.company.Day20;
+package com.company.Day20.Part2;
+
+import com.company.Day20.Part1.Graph;
+import com.company.Day20.Part1.Vertex;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class Main {
 
     static ArrayList<String> input = new ArrayList<>();
+    static final int[][] DIR = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    static final int[][] POSITIVE_DIR = {{1, 0}, {0, 1}};
 
     public static void main(String[] args) throws FileNotFoundException {
-        final int[][] DIR = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-        final int[][] POSITIVE_DIR = {{1, 0}, {0, 1}};
+
+        long time = System.nanoTime();
 
         File file = new File("src\\com\\company\\Day20\\input.txt");
         Scanner sc = new Scanner(file);
 
         while (sc.hasNextLine()) {
-            input.add(sc.nextLine());
+            String str = sc.nextLine();
+            input.add(str);
+            System.out.println(str);
         }
 
-        Graph graph = new Graph();
+        com.company.Day20.Part1.Graph graph = new Graph();
 
         Hashtable<String, String> portal = new Hashtable<>();
-        String start;
-        String end;
+        String start = "";
+        String end = "";
 
         for (int y = 0; y < input.size(); y++) {
             String str = input.get(y);
@@ -34,13 +42,13 @@ public class Main {
                 if (c == '#' || c == ' ') continue;
 
                 if (c == '.') {
-                    String id = Vertex.toString(x, y);
+                    String id = com.company.Day20.Part1.Vertex.toString(x, y);
                     if (!graph.hasVertex(id)) {
                         graph.addVertex(id);
                     }
                     for (int[] dir : DIR) {
                         int x2 = x + dir[0], y2 = y + dir[1];
-                        String id2 = Vertex.toString(x2, y2);
+                        String id2 = com.company.Day20.Part1.Vertex.toString(x2, y2);
                         if (graph.hasVertex(id2)) {
                             graph.addEdge(id, id2);
                         }
@@ -56,9 +64,9 @@ public class Main {
                             char c3 = getInput(x3, y3);
                             String id;
                             if (c3 == '.') {
-                                id = Vertex.toString(x3, y3);
+                                id = com.company.Day20.Part1.Vertex.toString(x3, y3);
                             } else {
-                                id = Vertex.toString(x - dir[0], y - dir[1]);
+                                id = com.company.Day20.Part1.Vertex.toString(x - dir[0], y - dir[1]);
                             }
 
                             if (!graph.hasVertex(id)) {
@@ -81,22 +89,9 @@ public class Main {
             }
         }
 
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
-                System.out.print(graph.hasVertex(Vertex.toString(j, i)) ? "." : "#");
-            }
-            System.out.print("\n");
-        }
-
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
-                if (graph.hasVertex(Vertex.toString(j, i))) {
-                    System.out.print(graph.getVertex(Vertex.toString(j, i)) + "  =>  ");
-                    System.out.println(graph.getVertex(Vertex.toString(j, i)).getAdj().toString());
-                }
-            }
-            System.out.print("\n");
-        }
+        LinkedList<Vertex> path = graph.BFS(start, end);
+        System.out.printf("Best path (%s steps):\n%s\n", path.size(), path.toString());
+        System.out.printf("Time taken: %sms", (System.nanoTime() - time) / 1e6);
     }
 
     public static char getInput(int x, int y) {

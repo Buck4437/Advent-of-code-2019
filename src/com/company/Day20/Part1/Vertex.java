@@ -1,6 +1,5 @@
-package com.company.Day20;
+package com.company.Day20.Part1;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Vertex {
@@ -26,13 +25,13 @@ public class Vertex {
         adj.add(n);
     }
 
-    public HashSet<Vertex> getAdj() {
-        return new HashSet<>(adj);
+    public LinkedList<Vertex> getAdj() {
+        return new LinkedList<>(adj);
     }
 
     @Override
     public String toString() {
-        return "Node{" +
+        return "Vertex{" +
                 "id='" + id + '\'' +
                 '}';
     }
