@@ -1,8 +1,5 @@
 package com.company.Day20.Part2;
 
-import com.company.Day20.Part1.Graph;
-import com.company.Day20.Part1.Vertex;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -11,6 +8,14 @@ import java.util.LinkedList;
 import java.util.Scanner;
 
 public class Main {
+
+    /*
+    Idea: Extract class
+
+    Store the locations of portal pairs (Can use class)
+    Separate them into INNER and OUTER by checking "*" (u know)
+     */
+
 
     static ArrayList<String> input = new ArrayList<>();
     static final int[][] DIR = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
@@ -29,7 +34,7 @@ public class Main {
             System.out.println(str);
         }
 
-        com.company.Day20.Part1.Graph graph = new Graph();
+        Graph graph = new Graph();
 
         Hashtable<String, String> portal = new Hashtable<>();
         String start = "";
@@ -42,13 +47,13 @@ public class Main {
                 if (c == '#' || c == ' ') continue;
 
                 if (c == '.') {
-                    String id = com.company.Day20.Part1.Vertex.toString(x, y);
+                    String id = Vertex.toString(x, y);
                     if (!graph.hasVertex(id)) {
                         graph.addVertex(id);
                     }
                     for (int[] dir : DIR) {
                         int x2 = x + dir[0], y2 = y + dir[1];
-                        String id2 = com.company.Day20.Part1.Vertex.toString(x2, y2);
+                        String id2 = Vertex.toString(x2, y2);
                         if (graph.hasVertex(id2)) {
                             graph.addEdge(id, id2);
                         }
@@ -64,9 +69,9 @@ public class Main {
                             char c3 = getInput(x3, y3);
                             String id;
                             if (c3 == '.') {
-                                id = com.company.Day20.Part1.Vertex.toString(x3, y3);
+                                id = Vertex.toString(x3, y3);
                             } else {
-                                id = com.company.Day20.Part1.Vertex.toString(x - dir[0], y - dir[1]);
+                                id = Vertex.toString(x - dir[0], y - dir[1]);
                             }
 
                             if (!graph.hasVertex(id)) {
@@ -96,11 +101,11 @@ public class Main {
 
     public static char getInput(int x, int y) {
         if (y >= input.size() || y < 0) {
-            return ' ';
+            return '*';
         } else {
             String str = input.get(y);
             if (x >= str.length() || x < 0) {
-                return ' ';
+                return '*';
             }
             return str.charAt(x);
         }

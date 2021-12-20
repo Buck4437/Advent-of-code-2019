@@ -37,8 +37,8 @@ public class Part2 {
 //        while (code == 3) {
 //            code = intcode.input(sc2.nextLine());
 //        }
-        System.out.println("Dust collected: " + intcode.getOutput(-1));
-        System.out.println("Program terminated with the code: " + code);
+//        System.out.println("Dust collected: " + intcode.getOutput(-1));
+        System.out.println("\nProgram terminated with the code: " + code);
 
     }
 }

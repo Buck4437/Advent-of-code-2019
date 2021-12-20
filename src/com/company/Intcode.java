@@ -44,6 +44,11 @@ public class Intcode {
 
 
 
+    By default, there is a filter that prevents numbers larger than 255 printed as ASCII characters (instead as a number)
+    This value can be changed with setASCIIFilter().
+
+
+
     If you want to reset/clear the output of the interpreter, you can run resetOutput().
     This will remove all the outputs from interpreter.
 
@@ -56,7 +61,7 @@ public class Intcode {
 
 
     If you want to reset the program, run reset().
-    This will reset everything except logging options and initial memory.
+    This will reset its mode, all pointers, output and restore the memory back to its original state.
     */
 
     long[] initialState;
@@ -65,6 +70,7 @@ public class Intcode {
     Hashtable<Integer, Long> memory = new Hashtable<>();
     int pointer = 0;
     int relativeBase = 0;
+    int ASCIIFilter = 255;
     boolean showLog = false, ASCIIMode = false;
 
     public Intcode(long[] memory) {
@@ -147,6 +153,10 @@ public class Intcode {
         return getASCIIOutputs().get(Math.floorMod(pos, getASCIIOutputs().size()));
     }
 
+    public void setASCIIFilter(int num) {
+        ASCIIFilter = num;
+    }
+
     public void showLog(boolean show) {
         showLog = show;
     }
@@ -203,8 +213,13 @@ public class Intcode {
                     long out = getValue(modes[0], params[0]);
                     output.add(out);
                     log(out + " has been outputted");
+
                     if (ASCIIMode) {
-                        System.out.print((char) out);
+                        if (out <= ASCIIFilter) {
+                            System.out.print((char) out);
+                        } else {
+                            System.out.print(out);
+                        }
                     }
 
                     pointer += 2;

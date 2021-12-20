@@ -37,6 +37,6 @@ public class Vertex {
     }
 
     public static String toString(int x, int y) {
-        return new Vertex(x, y).toString();
+        return new Vertex(x, y).getId();
     }
 }
