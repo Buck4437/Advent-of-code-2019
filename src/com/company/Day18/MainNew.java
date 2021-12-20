@@ -21,9 +21,12 @@ public class MainNew {
     // Gonna add 1 for each transversal to a node
     public static void constructMap(char[][] input) {
         HashMap<String, Character> grid = new HashMap<>();
-        HashMap<Character, int[]> keys = new HashMap<>();
-        HashMap<Character, int[]> doors = new HashMap<>();
-        int[] beginning = new int[2];
+
+        HashMap<Character, int[]> checkpoints = new HashMap<>();
+        ArrayList<Character> keys = new ArrayList<>();
+        ArrayList<Character> doors = new ArrayList<>();
+        char beginning = '@';
+
         for (int x = 0; x < input.length; x++) {
             char[] row = input[x];
             for (int y = 0; y < row.length; y++) {
@@ -32,17 +35,23 @@ public class MainNew {
 
                 grid.put(pointToStr(coord), c);
                 switch (getType(c)) {
-                    case LOWER -> keys.put(c, coord);
-                    case UPPER -> doors.put(c, coord);
-                    case PLAYER -> beginning = coord;
+                    case LOWER -> keys.add(c);
+                    case UPPER -> doors.add(c);
+                }
+                if (getType(c) != NONE) {
+                    checkpoints.put(c, coord);
                 }
             }
         }
 //        System.out.println(Arrays.toString(beginning));
 //        System.out.println(Arrays.toString(keys.get('b')));
-        System.out.println(Arrays.toString(beginning));
-        int dst = findShortest(grid, beginning, doors.get('E'));
-        System.out.println(dst);
+        int dst;
+        dst = findShortest(grid, checkpoints.get('@'), checkpoints.get('v'));
+        System.out.printf("Travelling from %s to %s takes %s steps\n", '@', 'v', dst == INFINITY ? "infinite" : dst);
+        dst = findShortest(grid, checkpoints.get('@'), checkpoints.get('V'));
+        System.out.printf("Travelling from %s to %s takes %s steps\n", '@', 'V', dst == INFINITY ? "infinite" : dst);
+        dst = findShortest(grid, checkpoints.get('@'), checkpoints.get('j'));
+        System.out.printf("Travelling from %s to %s takes %s steps\n", '@', 'j', dst == INFINITY ? "infinite" : dst);
     }
 
     public static int[][] gen_neighbour(int[] coord) {
@@ -70,7 +79,8 @@ public class MainNew {
 
                 if (Arrays.equals(coord, end)) {
                     return steps;
-                } else if (getType(grid.get(pointToStr(coord))) == UPPER) {
+                    // This coordinate is a door and not the beginning / end (filtered by return)
+                } else if (getType(grid.get(pointToStr(coord))) == UPPER && !Arrays.equals(coord, start)) {
                     continue;
                 }
 
