@@ -1,10 +1,10 @@
-package com.company.Day18.New;
+package com.company.Day18;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class MainNew2 {
+public class Part1 {
 
     public static void main(String[] args) throws FileNotFoundException {
         long time = System.nanoTime();
@@ -18,7 +18,7 @@ public class MainNew2 {
     static char BEGINNING_CHARACTER = '@';
 
     public static long execute() throws FileNotFoundException {
-        char[][] input = parse("New\\test.txt");
+        char[][] input = parse("input_part1.txt");
         HashMap<String, Integer> map = constructMap(input);
         System.out.println("Map constructed.");
         return path_find(map);
@@ -147,27 +147,24 @@ public class MainNew2 {
         System.out.println("Target key number: " + targetNumber);
 
         Hashtable<Character, HashSet<Character>> neighbours = gen_neighbour_checkpoints(map);
-        HashMap<String, Integer> distances = new HashMap<>();
         HashMap<String, Node> nodes = new HashMap<>();
-        Queue<PrioNode> unvisited = new PriorityQueue<>(new PrioNodeComparator());
+        Queue<Node> unvisited = new PriorityQueue<>(new NodeComparator());
 
-        Node beginning_node = new Node(BEGINNING_CHARACTER, 0);
-        unvisited.add(new PrioNode(beginning_node, 0));
+        Node beginning_node = new Node(BEGINNING_CHARACTER, 0, 0);
+        unvisited.add(beginning_node);
 
         while (unvisited.size() > 0) {
 
-            PrioNode current_node = unvisited.poll();
-            Node node = current_node.n;
-            int distance = current_node.dst;
+            Node node = unvisited.poll();
 
             if (node.getKeyNum() == targetNumber) {
-                return distance;
+                return node.getDst();
             }
 
-            node.makeAsVisited();
+            node.markAsVisited();
 
             HashSet<Character> node_neighbours = neighbours.get(node.getCheckpoint());
-            System.out.printf("Neighbours of %s are: %s\n", node.getCheckpoint(), node_neighbours);
+//            System.out.printf("Neighbours of %s are: %s\n", node.getCheckpoint(), node_neighbours);
 
             for (char neighbour : node_neighbours) {
                 long newKeyNum = node.getKeyNum();
@@ -192,15 +189,16 @@ public class MainNew2 {
                 }
 
                 // This neighbour, after picking up the key, has not been visited before
+                int newDst = node.getDst() + map.get(Character.toString(node.getCheckpoint()) + neighbour);
+                neighbourNode.setDst(newDst);
 
                 // Update distance
-                int newDst = distance + map.get(Character.toString(node.getCheckpoint()) + neighbour);
-                if (distances.get(neigh_key) == null || distances.get(neigh_key) > newDst) {
-                    distances.put(neigh_key, newDst);
-                    // Remove and reinsert the element
+                if (prevNode == null || prevNode.getDst() > newDst) {
+                    // Remove and reinsert a new element
+                    unvisited.remove(prevNode);
+                    unvisited.add(neighbourNode);
+                    nodes.put(neigh_key, neighbourNode);
                 }
-
-
 
             }
         }

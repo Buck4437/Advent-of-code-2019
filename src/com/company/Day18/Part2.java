@@ -1,10 +1,10 @@
-package com.company.Day18.New;
+package com.company.Day18;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class MainNew {
+public class Part2 {
 
     public static void main(String[] args) throws FileNotFoundException {
         long time = System.nanoTime();
@@ -15,12 +15,15 @@ public class MainNew {
     static HashSet<Character> keys = new HashSet<>();
     static HashSet<Character> doors = new HashSet<>();
     static HashMap<Character, int[]> checkpoints = new HashMap<>();
+    static ArrayList<int[]> beginngings = new ArrayList<>();
     static char BEGINNING_CHARACTER = '@';
+    static char BEGINNING_INIT_CHARACTER = '0';
 
     public static long execute() throws FileNotFoundException {
-        char[][] input = parse("test.txt");
+        char[][] input = parse("input_part2.txt");
         HashMap<String, Integer> map = constructMap(input);
         System.out.println("Map constructed.");
+//        return -1;
         return path_find(map);
     }
 
@@ -54,8 +57,16 @@ public class MainNew {
                     case LOWER -> keys.add(c);
                     case UPPER -> doors.add(c);
                 }
+
                 if (getType(c) != NONE) {
-                    checkpoints.put(c, coord);
+                    if (getType(c) == PLAYER) {
+                        // Beginning characters use 0-9
+                        char replacement = (char) (BEGINNING_INIT_CHARACTER + beginngings.size());
+                        beginngings.add(coord);
+                        checkpoints.put(replacement, coord);
+                    } else {
+                        checkpoints.put(c, coord);
+                    }
                 }
             }
         }
@@ -74,6 +85,7 @@ public class MainNew {
                 int dst = findShortest(grid, checkpoints.get(start), checkpoints.get(end));
                 map.put(key, dst);
                 map.put(key2, dst);
+//                System.out.printf("Travelling from %s to %s requires %s steps.\n", start, end, dst);
             }
         }
         return map;
@@ -147,82 +159,83 @@ public class MainNew {
         System.out.println("Target key number: " + targetNumber);
 
         Hashtable<Character, HashSet<Character>> neighbours = gen_neighbour_checkpoints(map);
-        HashMap<String, Integer> distances = new HashMap<>();
-        HashMap<String, Boolean> visited = new HashMap<>();
-        HashSet<long[]> unvisited = new HashSet<>();
+        HashMap<String, Group> groups = new HashMap<>();
+        Queue<Group> unvisited = new PriorityQueue<>(new GroupComparator());
 
-        long[] beginning_node = {BEGINNING_CHARACTER, 0};
-        unvisited.add(beginning_node);
-        distances.put(pointToStr(beginning_node), 0);
-        long iterations = 0;
-        long distance = 0;
+        Group beginning_group = new Group();
+        for (int i = 0; i < beginngings.size(); i++) {
+            Node node = new Node((char) (BEGINNING_INIT_CHARACTER + i), 0, 0);
+            beginning_group.addNode(node);
+        }
+        unvisited.add(beginning_group);
 
         while (unvisited.size() > 0) {
-            iterations += 1;
-            if (iterations % 1000 == 1) {
-                System.out.printf("Iteration %s, distance %s\n", iterations, distance);
-                System.out.println(unvisited.size());
-            }
-            long[] min_dst_node = new long[2];
-            int min_dst = INFINITY;
-            for (long[] node : unvisited) {
-                int dst = distances.get(pointToStr(node));
 
-                if (dst < min_dst) {
-                    min_dst_node = node;
-                    min_dst = dst;
-                }
+            Group group = unvisited.poll();
+
+            if (group.getTotalKeyNum() == targetNumber) {
+                return group.getTotalDst();
             }
 
-            distance = min_dst;
+//            System.out.println(group.getTotalDst());
 
-            char cur_node_char = (char) min_dst_node[0];
-            long key_num = min_dst_node[1];
+            group.markAsVisited();
 
-            if (key_num == targetNumber) {
-                return min_dst;
-            }
+            ArrayList<Node> nodes = group.getNodes();
+            for (int i = 0; i < nodes.size(); i++) {
+                Node node = nodes.get(i);
+                HashSet<Character> node_neighbours = neighbours.get(node.getCheckpoint());
 
-            unvisited.remove(min_dst_node);
-            visited.put(pointToStr(min_dst_node), true);
+                for (char neighbour : node_neighbours) {
+                    long newKeyNum = node.getKeyNum();
+                    int type_of_neigh = getType(neighbour);
 
-            HashSet<Character> node_neighbours = neighbours.get(cur_node_char);
-//            System.out.printf("Neighbours of %s are: %s\n", cur_node_char, node_neighbours);
-            for (char neighbour : node_neighbours) {
-                long new_key_num = key_num;
-                int type_of_neigh = getType(neighbour);
+                    Group neighbour_group = new Group();
 
-                // A door
-                if (type_of_neigh == UPPER) {
-                    if (!canOpen(key_num, neighbour)) {
+                    // It's a key!
+                    if (type_of_neigh == LOWER) {
+                        newKeyNum = addKey(newKeyNum, neighbour);
+                    }
+
+                    long newTotalKeyNum = newKeyNum | group.getTotalKeyNum();
+
+                    // A door
+                    if (type_of_neigh == UPPER) {
+                        if (!canOpen(newTotalKeyNum, neighbour)) {
+                            continue;
+                        }
+                    }
+
+                    // This node will replace the current node in a new group
+                    Node neighbourNode = new Node(neighbour, newKeyNum);
+
+                    for (int j = 0; j < nodes.size(); j++) {
+                        if (i == j) {
+                            neighbour_group.addNode(neighbourNode);
+                        } else {
+                            neighbour_group.addNode(nodes.get(j).clone_node());
+                        }
+                    }
+
+                    String neigh_key = neighbour_group.toString();
+
+                    Group prevGroup = groups.get(neigh_key);
+                    if (prevGroup != null && prevGroup.isVisited()) {
                         continue;
                     }
-                    // A Key
-                } else if (type_of_neigh == LOWER) {
-                    new_key_num = addKey(key_num, neighbour);
+
+                    // This neighbouring group, after picking up the key, has not been visited before
+                    int newDst = node.getDst() + map.get(Character.toString(node.getCheckpoint()) + neighbour);
+                    neighbourNode.setDst(newDst);
+
+                    // Update distance
+                    if (prevGroup == null || prevGroup.getTotalDst() > neighbour_group.getTotalDst()) {
+                        // Remove and reinsert a new element
+                        unvisited.remove(prevGroup);
+                        unvisited.add(neighbour_group);
+                        groups.put(neigh_key, neighbour_group);
+                    }
                 }
-
-                long[] neigh_as_node = {neighbour, new_key_num};
-                String neigh_key = pointToStr(neigh_as_node);
-
-                if (visited.get(neigh_key) != null) {
-                    continue;
-                }
-
-                // This neighbour, after picking up the key, has not been visited before
-
-                // Update distance
-                int new_dst = min_dst + map.get(Character.toString(cur_node_char) + neighbour);
-                if (distances.get(neigh_key) == null || distances.get(neigh_key) > new_dst) {
-                    distances.put(neigh_key, new_dst);
-                }
-
-                // Add to unvisited, if it isn't in the set
-                boolean contains = unvisited.stream().anyMatch(c -> Arrays.equals(c, neigh_as_node));
-                if (!contains) {
-                    unvisited.add(neigh_as_node);
-                }
-
             }
         }
         return INFINITY;

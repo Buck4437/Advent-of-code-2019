@@ -1,6 +1,6 @@
-package com.company.Day18.New;
+package com.company.Day18;
 
-import static com.company.Day18.New.MainNew3.INFINITY;
+import static com.company.Day18.Part1.INFINITY;
 
 public class Node {
 
@@ -16,8 +16,19 @@ public class Node {
     public Node(char checkpoint, long keyNum, int dst) {
         this.checkpoint = checkpoint;
         this.keyNum = keyNum;
-        this.visited = false;
         this.dst = dst;
+        this.visited = false;
+    }
+
+    private Node(char checkpoint, long keyNum, int dst, boolean visited) {
+        this.checkpoint = checkpoint;
+        this.keyNum = keyNum;
+        this.dst = dst;
+        this.visited = visited;
+    }
+
+    public Node clone_node() {
+        return new Node(checkpoint, keyNum, dst, visited);
     }
 
     public void setDst(int dst) {
@@ -28,7 +39,7 @@ public class Node {
         return dst;
     }
 
-    public void makeAsVisited() {
+    public void markAsVisited() {
         visited = true;
     }
 
