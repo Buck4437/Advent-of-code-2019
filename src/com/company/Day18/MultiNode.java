@@ -1,21 +1,22 @@
 package com.company.Day18;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static com.company.Day18.Part1.INFINITY;
 
 public class MultiNode {
 
-    private final ArrayList<Character> checkpoints;
+    private final char[] checkpoints;
     private final long keyNum;
     private boolean visited;
     private int dst;
 
-    public MultiNode(ArrayList<Character> checkpoint, long keyNum) {
+    public MultiNode(char[] checkpoint, long keyNum) {
         this(checkpoint, keyNum, INFINITY);
     }
 
-    public MultiNode(ArrayList<Character> checkpoint, long keyNum, int dst) {
+    public MultiNode(char[] checkpoint, long keyNum, int dst) {
         this.checkpoints = checkpoint;
         this.keyNum = keyNum;
         this.dst = dst;
@@ -42,14 +43,14 @@ public class MultiNode {
         return keyNum;
     }
 
-    public ArrayList<Character> getCheckpoints() {
+    public char[] getCheckpoints() {
         return checkpoints;
     }
 
     @Override
     public String toString() {
         return "MultiNode{" +
-                "checkpoints=" + checkpoints.toString() +
+                "checkpoints=" + Arrays.toString(checkpoints) +
                 ", keyNum=" + keyNum +
                 '}';
     }

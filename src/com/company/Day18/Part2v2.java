@@ -162,17 +162,24 @@ public class Part2v2 {
         HashMap<String, MultiNode> multiNodes = new HashMap<>();
         Queue<MultiNode> unvisited = new PriorityQueue<>(new MultiNodeComparator());
 
-        ArrayList<Character> init_chars = new ArrayList<>();
+        char[] init_chars = new char[beginngings.size()];
         for (int i = 0; i < beginngings.size(); i++) {
-            init_chars.add((char) (BEGINNING_INIT_CHARACTER + i));
+            init_chars[i] = (char) (BEGINNING_INIT_CHARACTER + i);
         }
 
         MultiNode beginning_multiNode = new MultiNode(init_chars, 0, 0);
         unvisited.add(beginning_multiNode);
 
+        int iter = 0;
 
         while (unvisited.size() > 0) {
             MultiNode multiNode = unvisited.poll();
+
+            iter += 1;
+            if (iter % 10000 == 0) {
+                System.out.println(iter);
+                System.out.println(multiNode.getDst());
+            }
 
             if (multiNode.getKeyNum() == targetNumber) {
                 return multiNode.getDst();
@@ -180,26 +187,29 @@ public class Part2v2 {
 
             multiNode.markAsVisited();
 
-            ArrayList<Character> checkpoints = multiNode.getCheckpoints();
-            for (int i = 0; i < checkpoints.size(); i++) {
-                char checkpoint = checkpoints.get(i);
+            char[] checkpoints = multiNode.getCheckpoints();
+            for (int i = 0; i < checkpoints.length; i++) {
+                char checkpoint = checkpoints[i];
                 HashSet<Character> node_neighbours = neighbours.get(checkpoint);
 
                 for (char neighbour : node_neighbours) {
                     long newKeyNum = multiNode.getKeyNum();
                     int type_of_neigh = getType(neighbour);
 
+                    if (type_of_neigh == LOWER) {
+                        newKeyNum = addKey(newKeyNum, neighbour);
+                    }
+
                     // A door
                     if (type_of_neigh == UPPER) {
                         if (!canOpen(newKeyNum, neighbour)) {
                             continue;
                         }
-                    } else if (type_of_neigh == LOWER) {
-                        newKeyNum = addKey(newKeyNum, neighbour);
                     }
 
-                    ArrayList<Character> new_checkpoints = new ArrayList<>(checkpoints);
-                    new_checkpoints.set(i, neighbour);
+
+                    char[] new_checkpoints = Arrays.copyOf(checkpoints, checkpoints.length);
+                    new_checkpoints[i] = neighbour;
 
                     MultiNode neighbourNode = new MultiNode(new_checkpoints, newKeyNum);
 
@@ -211,7 +221,7 @@ public class Part2v2 {
                     }
 
                     // This neighbouring group, after picking up the key, has not been visited before
-                    int newDst = multiNode.getDst() + map.get(Character.toString(multiNode.getCheckpoints().get(i)) + neighbour);
+                    int newDst = multiNode.getDst() + map.get(Character.toString(checkpoint) + neighbour);
                     neighbourNode.setDst(newDst);
 
                     // Update distance

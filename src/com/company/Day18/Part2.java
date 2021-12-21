@@ -174,11 +174,11 @@ public class Part2 {
         while (unvisited.size() > 0) {
             Group group = unvisited.poll();
 
-//            iter ++;
-//            if (iter % 10000 == 0) {
-//                System.out.println(iter);
-//                System.out.println(group.getTotalDst());
-//            }
+            iter ++;
+            if (iter % 10000 == 0) {
+                System.out.println(iter);
+                System.out.println(group.getTotalDst());
+            }
 
             if (group.getTotalKeyNum() == targetNumber) {
                 return group.getTotalDst();
