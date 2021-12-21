@@ -160,6 +160,7 @@ public class Part2 {
 
         Hashtable<Character, HashSet<Character>> neighbours = gen_neighbour_checkpoints(map);
         HashMap<String, Group> groups = new HashMap<>();
+        HashMap<String, Boolean> visited = new HashMap<>();
         Queue<Group> unvisited = new PriorityQueue<>(new GroupComparator());
 
         Group beginning_group = new Group();
@@ -178,6 +179,7 @@ public class Part2 {
             if (iter % 10000 == 0) {
                 System.out.println(iter);
                 System.out.println(group.getTotalDst());
+//                System.out.println(groups.size());
             }
 
             if (group.getTotalKeyNum() == targetNumber) {
@@ -186,7 +188,9 @@ public class Part2 {
 
 //            System.out.println(group.getTotalDst());
 
-            group.markAsVisited();
+//            group.markAsVisited();
+            visited.put(group.toString(), true);
+            groups.remove(group.toString());
 
             ArrayList<Node> nodes = group.getNodes();
             for (int i = 0; i < nodes.size(); i++) {
@@ -226,10 +230,14 @@ public class Part2 {
 
                     String neigh_key = neighbour_group.toString();
 
-                    Group prevGroup = groups.get(neigh_key);
-                    if (prevGroup != null && prevGroup.isVisited()) {
+                    if (visited.get(neigh_key) != null) {
                         continue;
                     }
+
+                    Group prevGroup = groups.get(neigh_key);
+//                    if (prevGroup != null && prevGroup.isVisited()) {
+//                        continue;
+//                    }
 
                     // This neighbouring group, after picking up the key, has not been visited before
                     int newDst = node.getDst() + map.get(Character.toString(node.getCheckpoint()) + neighbour);
