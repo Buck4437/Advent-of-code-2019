@@ -2,9 +2,10 @@ package com.company.Day18;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
 import java.util.*;
 
-public class Part2 {
+public class Part2v2 {
 
     public static void main(String[] args) throws FileNotFoundException {
         long time = System.nanoTime();
@@ -23,7 +24,6 @@ public class Part2 {
         char[][] input = parse("input_part2.txt");
         HashMap<String, Integer> map = constructMap(input);
         System.out.println("Map constructed.");
-//        return -1;
         return path_find(map);
     }
 
@@ -159,88 +159,67 @@ public class Part2 {
         System.out.println("Target key number: " + targetNumber);
 
         Hashtable<Character, HashSet<Character>> neighbours = gen_neighbour_checkpoints(map);
-        HashMap<String, Group> groups = new HashMap<>();
-        Queue<Group> unvisited = new PriorityQueue<>(new GroupComparator());
+        HashMap<String, MultiNode> multiNodes = new HashMap<>();
+        Queue<MultiNode> unvisited = new PriorityQueue<>(new MultiNodeComparator());
 
-        Group beginning_group = new Group();
+        ArrayList<Character> init_chars = new ArrayList<>();
         for (int i = 0; i < beginngings.size(); i++) {
-            Node node = new Node((char) (BEGINNING_INIT_CHARACTER + i), 0, 0);
-            beginning_group.addNode(node);
+            init_chars.add((char) (BEGINNING_INIT_CHARACTER + i));
         }
-        unvisited.add(beginning_group);
 
-        int iter = 0;
+        MultiNode beginning_multiNode = new MultiNode(init_chars, 0, 0);
+        unvisited.add(beginning_multiNode);
+
 
         while (unvisited.size() > 0) {
-            Group group = unvisited.poll();
+            MultiNode multiNode = unvisited.poll();
 
-//            iter ++;
-//            if (iter % 10000 == 0) {
-//                System.out.println(iter);
-//                System.out.println(group.getTotalDst());
-//            }
-
-            if (group.getTotalKeyNum() == targetNumber) {
-                return group.getTotalDst();
+            if (multiNode.getKeyNum() == targetNumber) {
+                return multiNode.getDst();
             }
 
-//            System.out.println(group.getTotalDst());
+            multiNode.markAsVisited();
 
-            group.markAsVisited();
-
-            ArrayList<Node> nodes = group.getNodes();
-            for (int i = 0; i < nodes.size(); i++) {
-                Node node = nodes.get(i);
-                HashSet<Character> node_neighbours = neighbours.get(node.getCheckpoint());
+            ArrayList<Character> checkpoints = multiNode.getCheckpoints();
+            for (int i = 0; i < checkpoints.size(); i++) {
+                char checkpoint = checkpoints.get(i);
+                HashSet<Character> node_neighbours = neighbours.get(checkpoint);
 
                 for (char neighbour : node_neighbours) {
-                    long newKeyNum = node.getKeyNum();
+                    long newKeyNum = multiNode.getKeyNum();
                     int type_of_neigh = getType(neighbour);
-
-                    Group neighbour_group = new Group();
-
-                    // It's a key!
-                    if (type_of_neigh == LOWER) {
-                        newKeyNum = addKey(newKeyNum, neighbour);
-                    }
-
-                    long newTotalKeyNum = newKeyNum | group.getTotalKeyNum();
 
                     // A door
                     if (type_of_neigh == UPPER) {
-                        if (!canOpen(newTotalKeyNum, neighbour)) {
+                        if (!canOpen(newKeyNum, neighbour)) {
                             continue;
                         }
+                    } else if (type_of_neigh == LOWER) {
+                        newKeyNum = addKey(newKeyNum, neighbour);
                     }
 
-                    // This node will replace the current node in a new group
-                    Node neighbourNode = new Node(neighbour, newKeyNum);
+                    ArrayList<Character> new_checkpoints = new ArrayList<>(checkpoints);
+                    new_checkpoints.set(i, neighbour);
 
-                    for (int j = 0; j < nodes.size(); j++) {
-                        if (i == j) {
-                            neighbour_group.addNode(neighbourNode);
-                        } else {
-                            neighbour_group.addNode(nodes.get(j).clone_node());
-                        }
-                    }
+                    MultiNode neighbourNode = new MultiNode(new_checkpoints, newKeyNum);
 
-                    String neigh_key = neighbour_group.toString();
+                    String neigh_key = neighbourNode.toString();
 
-                    Group prevGroup = groups.get(neigh_key);
-                    if (prevGroup != null && prevGroup.isVisited()) {
+                    MultiNode prevNode = multiNodes.get(neigh_key);
+                    if (prevNode != null && prevNode.isVisited()) {
                         continue;
                     }
 
                     // This neighbouring group, after picking up the key, has not been visited before
-                    int newDst = node.getDst() + map.get(Character.toString(node.getCheckpoint()) + neighbour);
+                    int newDst = multiNode.getDst() + map.get(Character.toString(multiNode.getCheckpoints().get(i)) + neighbour);
                     neighbourNode.setDst(newDst);
 
                     // Update distance
-                    if (prevGroup == null || prevGroup.getTotalDst() > neighbour_group.getTotalDst()) {
+                    if (prevNode == null || prevNode.getDst() > multiNode.getDst()) {
                         // Remove and reinsert a new element
-                        unvisited.remove(prevGroup);
-                        unvisited.add(neighbour_group);
-                        groups.put(neigh_key, neighbour_group);
+                        unvisited.remove(prevNode);
+                        unvisited.add(neighbourNode);
+                        multiNodes.put(neigh_key, neighbourNode);
                     }
                 }
             }
