@@ -14,12 +14,82 @@ public class Main {
         Intcode intcode = new Intcode(instructions);
         intcode.ASCIIMode(true);
         int code = intcode.run();
+        String input = """
+                north
+                north
+                take sand
+                south
+                south
+                inv
+                south
+                take space heater
+                south
+                east
+                take loom
+                west
+                north
+                west
+                take wreath
+                south
+                take space law space brochure
+                south
+                take pointer
+                north
+                north
+                east
+                north
+                west
+                west
+                take festive hat
+                east
+                south
+                take planetoid
+                north
+                west
+                south
+                west
+                north
+                inv""";
+
+        String ans = gen_command(128 + 64 + 32 + 1);
+        intcode.input(input);
+        int counter = 0;
         while (code == 3) {
-            code = intcode.input(sc.nextLine());
+            String ln = sc.nextLine();
+            if (ln.equals("n")) {
+                ln = gen_command(counter);
+                counter += 1;
+            } else if (ln.equals("ans")) {
+                ln = ans;
+            }
+            code = intcode.input(ln);
         }
+
         // Items to ignore: Photon, Giant Electromagnet, Infinite loop, Molten lava, Escape pod
-        // Idea: List all inventory, then somehow list all combinations, then convert it to some sort of binary shit
         System.out.println("Latest output: " + intcode.getOutput(-1));
+    }
+
+    static String[] items = {
+            "planetoids",
+            "festive hat",
+            "space heater",
+            "loom",
+            "space law space brochure",
+            "sand",
+            "pointer",
+            "wreath"
+    };
+
+    private static String gen_command(int counter) {
+        String command = "";
+        for (String item : items) {
+            command += "drop " + item + "\n";
+            if (counter % 2 == 1) {
+                command += "take " + item + "\n";
+            }
+            counter = (counter - counter % 2) / 2;
+        }
+        return command + "inv\nnorth";
     }
 
     public static long[] parse() throws FileNotFoundException {

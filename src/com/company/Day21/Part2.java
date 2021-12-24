@@ -45,6 +45,7 @@ public class Part2 {
 //            code = intcode.input(sc2.nextLine());
 //        }
 
+        System.out.println();
         System.out.println("Damage: " + intcode.getOutput(-1));
         System.out.println("Program terminated with the code: " + code);
 

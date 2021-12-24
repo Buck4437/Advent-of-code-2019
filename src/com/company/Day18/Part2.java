@@ -189,8 +189,8 @@ public class Part2 {
 //            System.out.println(group.getTotalDst());
 
 //            group.markAsVisited();
-            visited.put(group.toString(), true);
             groups.remove(group.toString());
+            visited.put(group.toString(), true);
 
             ArrayList<Node> nodes = group.getNodes();
             for (int i = 0; i < nodes.size(); i++) {
