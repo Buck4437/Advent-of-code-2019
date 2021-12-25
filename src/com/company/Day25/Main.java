@@ -52,15 +52,24 @@ public class Main {
                 inv""";
 
         String ans = gen_command(128 + 64 + 32 + 1);
-        intcode.input(input);
         int counter = 0;
         while (code == 3) {
             String ln = sc.nextLine();
-            if (ln.equals("n")) {
-                ln = gen_command(counter);
-                counter += 1;
-            } else if (ln.equals("ans")) {
-                ln = ans;
+            switch (ln) {
+                case "warp" -> {
+                    ln = input;
+                }
+                case "n" -> {
+                    ln = gen_command(counter);
+                    counter += 1;
+                }
+                case "ans" -> ln = ans;
+                case "hack" -> {
+                    code = intcode.input(input);
+                    for (int i = 0; i < 256; i++) {
+                        code = intcode.input(gen_command(i));
+                    }
+                }
             }
             code = intcode.input(ln);
         }
