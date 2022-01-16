@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class Part1New {
+public class Part2NewNew {
 
     public static void main(String[] args) throws FileNotFoundException {
         long time = System.nanoTime();
@@ -15,12 +15,15 @@ public class Part1New {
     static HashSet<Character> keys = new HashSet<>();
     static HashSet<Character> doors = new HashSet<>();
     static HashMap<Character, int[]> checkpoints = new HashMap<>();
+    static ArrayList<int[]> beginngings = new ArrayList<>();
     static char BEGINNING_CHARACTER = '@';
+    static char BEGINNING_INIT_CHARACTER = '0';
 
     public static long execute() throws FileNotFoundException {
-        char[][] input = parse("input_part1.txt");
+        char[][] input = parse("input_part2.txt");
         HashMap<String, Edge> map = constructMap(input);
         System.out.println("Map constructed.");
+//        return -1;
         return dijkstra(map);
     }
 
@@ -56,7 +59,14 @@ public class Part1New {
                 }
 
                 if (getType(c) != NONE && getType(c) != DOOR) {
-                    checkpoints.put(c, coord);
+                    if (getType(c) == PLAYER) {
+                        // Beginning characters use 0-9
+                        char replacement = (char) (BEGINNING_INIT_CHARACTER + beginngings.size());
+                        beginngings.add(coord);
+                        checkpoints.put(replacement, coord);
+                    } else {
+                        checkpoints.put(c, coord);
+                    }
                 }
             }
         }
@@ -161,73 +171,99 @@ public class Part1New {
         System.out.println("Target key number: " + targetNumber);
 
         Hashtable<Character, HashSet<Character>> neighbours = gen_neighbour_checkpoints(map);
-        HashMap<String, Node> nodes = new HashMap<>();
-        Queue<Node> unvisited = new PriorityQueue<>(new NodeComparator());
 
-        Node beginning_node = new Node(BEGINNING_CHARACTER, 0, 0);
-        unvisited.add(beginning_node);
+        HashMap<String, Group> groups = new HashMap<>();
+        HashMap<String, Boolean> visited = new HashMap<>();
+        Queue<Group> unvisited = new PriorityQueue<>(new GroupComparator());
+
+        Group beginning_group = new Group();
+        for (int i = 0; i < beginngings.size(); i++) {
+            Node node = new Node((char) (BEGINNING_INIT_CHARACTER + i), 0, 0);
+            beginning_group.addNode(node);
+        }
+        unvisited.add(beginning_group);
+
+        int iter = 0;
 
         while (unvisited.size() > 0) {
+            Group group = unvisited.poll();
 
-            Node node = unvisited.poll();
+            iter ++;
 
-            if (node.getKeyNum() == targetNumber) {
-                return node.getDst();
+            if (group.getTotalKeyNum() == targetNumber) {
+                System.out.println("Iterations: " + iter);
+                return group.getTotalDst();
             }
 
-            node.markAsVisited();
+            groups.remove(group.toString());
+            visited.put(group.toString(), true);
 
-            HashSet<Character> node_neighbours = neighbours.get(node.getCheckpoint());
-//            System.out.printf("Neighbours of %s are: %s\n", node.getCheckpoint(), node_neighbours);
+            ArrayList<Node> nodes = group.getNodes();
+            long totalKeyNum = group.getTotalKeyNum();
 
-            for (char neighbour : node_neighbours) {
-                Edge edge = map.get(Character.toString(node.getCheckpoint()) + neighbour);
-                long keyNum = node.getKeyNum();
-                int type_of_neigh = getType(neighbour);
+            for (int i = 0; i < nodes.size(); i++) {
+                Node node = nodes.get(i);
+                HashSet<Character> node_neighbours = neighbours.get(node.getCheckpoint());
 
-                if (type_of_neigh == PLAYER) {
-                    continue;
-                }
+                for (char neighbour : node_neighbours) {
+                    long nodeNewKeyNum = node.getKeyNum();
+                    Group neighbour_group = new Group();
+                    Edge edge = map.get(Character.toString(node.getCheckpoint()) + neighbour);
 
-                HashSet<Character> doorsBetween = edge.getDoors();
-                boolean openable = true;
-                for (char door : doorsBetween) {
-                    if (!canOpen(keyNum, door)) {
-                        openable = false;
-                        break;
+                    if (getType(neighbour) == PLAYER) {
+                        continue;
+                    }
+
+                    HashSet<Character> doorsBetween = edge.getDoors();
+                    boolean openable = true;
+                    for (char door : doorsBetween) {
+                        if (!canOpen(totalKeyNum, door)) {
+                            openable = false;
+                            break;
+                        }
+                    }
+
+                    if (!openable) {
+                        continue;
+                    }
+
+                    long new_num = addKey(nodeNewKeyNum, neighbour);
+                    // This has been collected before!
+                    if (new_num == nodeNewKeyNum) {
+                        continue;
+                    }
+                    nodeNewKeyNum = new_num;
+
+                    // This node will replace the current node in a new group
+                    Node neighbourNode = new Node(neighbour, nodeNewKeyNum);
+
+                    for (int j = 0; j < nodes.size(); j++) {
+                        if (i == j) {
+                            neighbour_group.addNode(neighbourNode);
+                        } else {
+                            neighbour_group.addNode(nodes.get(j).clone_node());
+                        }
+                    }
+
+                    String neigh_key = neighbour_group.toString();
+
+                    if (visited.get(neigh_key) != null) {
+                        continue;
+                    }
+
+                    Group prevGroup = groups.get(neigh_key);
+
+                    int newDst = node.getDst() + edge.getDst();
+                    neighbourNode.setDst(newDst);
+
+                    // Update distance
+                    if (prevGroup == null || prevGroup.getTotalDst() > neighbour_group.getTotalDst()) {
+                        // Remove and reinsert a new element
+                        unvisited.remove(prevGroup);
+                        unvisited.add(neighbour_group);
+                        groups.put(neigh_key, neighbour_group);
                     }
                 }
-
-                if (!openable) {
-                    continue;
-                }
-
-                long newKeyNum = addKey(keyNum, neighbour);
-                // This has been collected before!
-                if (newKeyNum == keyNum) {
-                    continue;
-                }
-
-                Node neighbourNode = new Node(neighbour, newKeyNum);
-                String neigh_key = neighbourNode.toString();
-
-                Node prevNode = nodes.get(neigh_key);
-                if (prevNode != null && prevNode.isVisited()) {
-                    continue;
-                }
-
-                // This neighbour, after picking up the key, has not been visited before
-                int newDst = node.getDst() + edge.getDst();
-                neighbourNode.setDst(newDst);
-
-                // Update distance
-                if (prevNode == null || prevNode.getDst() > newDst) {
-                    // Remove and reinsert a new element
-                    unvisited.remove(prevNode);
-                    unvisited.add(neighbourNode);
-                    nodes.put(neigh_key, neighbourNode);
-                }
-
             }
         }
         return INFINITY;
@@ -265,6 +301,10 @@ public class Part1New {
         return keyNum | (long) Math.pow(2, key - 'a');
     }
 
+    public static boolean hasKey(long keyNum, char key) {
+        return (keyNum & (long) Math.pow(2, key - 'a')) != 0;
+    }
+
     public static long keySetToKeyNumber(HashSet<Character> keys) {
         long keyNum = 0;
         for (char key : keys) {
@@ -274,19 +314,6 @@ public class Part1New {
     }
 
     public static String pointToStr(int[] pt) {
-        StringBuilder out = new StringBuilder();
-        out.append("(");
-        for (int i = 0; i < pt.length; i++) {
-            out.append(pt[i]);
-            if (i != pt.length - 1) {
-                out.append(", ");
-            }
-        }
-        out.append(")");
-        return out.toString();
-    }
-
-    public static String pointToStr(long[] pt) {
         StringBuilder out = new StringBuilder();
         out.append("(");
         for (int i = 0; i < pt.length; i++) {

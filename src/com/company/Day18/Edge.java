@@ -25,6 +25,10 @@ public class Edge {
         return dst;
     }
 
+    public void addDoor(char c) {
+        this.doors.add(c);
+    }
+
     @Override
     public String toString() {
         return "Edge{" +
